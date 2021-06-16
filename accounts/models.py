@@ -3,6 +3,7 @@ from django.contrib.auth.models import (
     AbstractBaseUser
 )
 from django.contrib.auth.models import PermissionsMixin
+from django.utils import timezone
 from .managers import UserManager
 import uuid
 
@@ -24,6 +25,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         blank=True,
         null=True
     )
+    last_name = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True
+    )
+    date_created = models.DateTimeField(default=timezone.now)
     active = models.BooleanField(default=True)
     staff = models.BooleanField(default=False)  # a admin user; non super-user
     admin = models.BooleanField(default=False)  # a superuser

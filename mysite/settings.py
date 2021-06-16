@@ -25,7 +25,7 @@ SECRET_KEY = 'x%v_m4!7#m#5h6n+)7*+w-tvh@2+j$pjqz@5i+4k0_)bw&=@84'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'debug_toolbar',
     'accounts',
-    'djoser',
 
 ]
 
