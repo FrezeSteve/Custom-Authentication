@@ -27,6 +27,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
+if not DEBUG:
+    ALLOWED_HOSTS.pop()
+    ALLOWED_HOSTS.append('localhost')
+
 
 # Application definition
 
@@ -40,7 +44,6 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'accounts',
     'blog',
-
 ]
 
 MIDDLEWARE = [

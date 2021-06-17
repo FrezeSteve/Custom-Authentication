@@ -14,8 +14,7 @@ class Registration(View):
     template_name = 'accounts/registration.html'
 
     def get(self, request, *args, **kwargs):
-        form = self.form_class()
-        return render(request, self.template_name, {'form': form})
+        return render(request, self.template_name, {'form': self.form_class()})
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)

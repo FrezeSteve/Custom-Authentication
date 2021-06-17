@@ -66,3 +66,21 @@ class User(AbstractBaseUser, PermissionsMixin):
     def is_active(self):
         """Is the user active?"""
         return self.active
+
+
+class AnonymousUser(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    session_id = models.CharField(
+        verbose_name='Session ID',
+        max_length=255,
+        unique=True
+    )
+    date_created = models.DateTimeField(default=timezone.now)
+    last_used = models.DateTimeField(default=timezone.now)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='logged_in_user', null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'AnonymousUser'
+        verbose_name_plural = 'AnonymousUser'
+
+    def __str__(self): return self.session_id
