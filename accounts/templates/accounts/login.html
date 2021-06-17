@@ -1,0 +1,35 @@
+{% extends "base.html"%}
+{%load static%}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title%}Login Page{% endblock %}</title>
+    {% block head%}
+    <meta name="robots" content="index, follow" />
+    <!-- <meta name="robots" content="noindex, nofollow" /> -->
+    <meta name="description" content="Login Page">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">{% endblock %}
+</head>
+
+<body>
+    {% block content%}
+    <div class="row mt-5 full_width mx-auto">
+        <div class="col-12 col-md-6 mx-auto">
+            <h1>Login</h1>
+            <form method="post">
+                {% csrf_token %}
+                {{form.as_p}}
+                <button type="submit" class="btn btn-primary">Login</button>
+                <a href="{% url 'accounts:register' %}" class="btn btn-success">Register</a>
+            </form>
+        </div>
+    </div>
+    {% endblock %}
+    {% block scripts%}{% endblock %}
+</body>
+
+</html>
