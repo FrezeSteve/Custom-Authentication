@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'debug_toolbar',
     'accounts',
+    'blog',
 
 ]
 
@@ -122,6 +123,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 STATIC_URL = '/static/'
 
+
 # django debug tool
 INTERNAL_IPS = [
     # ...
@@ -130,3 +132,11 @@ INTERNAL_IPS = [
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
+
+
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+]

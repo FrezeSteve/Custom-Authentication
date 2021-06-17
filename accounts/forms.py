@@ -1,12 +1,16 @@
-from django import forms
-from django.contrib.auth.forms import ReadOnlyPasswordHashField
-
 from .models import User
+
+from django import forms
+from django.contrib.auth.forms import ReadOnlyPasswordHashField, AuthenticationForm, UsernameField
+from django.utils.translation import gettext_lazy as _
 
 
 class RegisterForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput)
-    password2 = forms.CharField(label='Confirm password', widget=forms.PasswordInput)
+    email = forms.EmailField(widget=forms.TextInput(attrs={'class': 'form-control', "placeholder": "Email"}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control', "placeholder": "Password"}))
+    password2 = forms.CharField(label='Confirm password', widget=forms.PasswordInput(
+        attrs={'class': 'form-control', "placeholder": "Confirm Password"})
+                                )
 
     class Meta:
         model = User
@@ -21,11 +25,19 @@ class RegisterForm(forms.ModelForm):
 
     def clean_password2(self):
         # Check that the two password entries match
-        password1 = self.cleaned_data.get("password1")
+        password1 = self.cleaned_data.get("password")
         password2 = self.cleaned_data.get("password2")
         if password1 and password2 and password1 != password2:
             raise forms.ValidationError("Passwords don't match")
         return password2
+
+    def save(self, commit=True):
+        # Save the provided password in hashed format
+        user = super(RegisterForm, self).save(commit=False)
+        user.set_password(self.cleaned_data["password"])
+        if commit:
+            user.save()
+        return user
 
 
 class UserAdminCreationForm(forms.ModelForm):
@@ -73,3 +85,20 @@ class UserAdminChangeForm(forms.ModelForm):
         # This is done here, rather than on the field, because the
         # field does not have access to the initial value
         return self.initial["password"]
+
+
+class CustomAuthenticationForm(AuthenticationForm):
+    username = UsernameField(
+        label=_("Email"),
+        widget=forms.TextInput(
+            attrs={
+                'autofocus': True
+                , 'class': 'form-control'
+                , "placeholder": "Email"
+            })
+    )
+    password = forms.CharField(
+        label=_("Password"),
+        strip=False,
+        widget=forms.PasswordInput({'class': 'form-control', "placeholder": "Password"}),
+    )
