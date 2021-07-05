@@ -33,6 +33,13 @@ class PostDetailView(DetailView):
     def get(self, request, *args, **kwargs):
         response = super(PostDetailView, self).get(request, *args, **kwargs)
         custom_set_cookie(self.request, response)
+        # for i in range(10000):
+        #     Comment.objects.create(
+        #         title="stupid",
+        #         body="not that bad.",
+        #         post=self.get_object(),
+        #         device=DeviceTracker.objects.first()
+        #     )
         return response
 
 

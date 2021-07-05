@@ -1,5 +1,4 @@
 {% extends "base.html"%}
-{%load static%}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -12,7 +11,11 @@
     <meta name="robots" content="index, follow" />
     <!-- <meta name="robots" content="noindex, nofollow" /> -->
     <meta name="description" content="Login Page">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">{% endblock %}
+    <style>
+        .full_width {
+            width: 100% !important;
+        }
+    </style>{% endblock %}
 </head>
 
 <body>

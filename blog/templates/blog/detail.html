@@ -16,53 +16,87 @@
 
 <body>
     {% block content%}
-    <h1>{{object.title}}</h1>
-    <hr>
-    <h2>{{ object.subttitle }}</h2>
-    <small>Posted at {{object.date_created}}</small>
-    <p>{{ object.body }}</p>
-    <hr>
-    <div id="comment_button" onclick="comment_event()">Add Comment</div>
-    <form id="comment_form" action="{% url 'blog:create_comment' object.id %}" method="post">
-        {% csrf_token %}
-        {{comment_form.as_p}}
-        <button type="submit" class="btn btn-success ms-2">submit</button>
-    </form>
-    <h2>Comments</h2>
-    <ol>
-        {% for comment in post.comments.all %}
-        <li>
-            <span class="fw-bold">{{comment.title}}</span> <br> {{comment.body}}
-            {% if comment.user and comment.user.first_name %}
-            <br>
-            {{comment.user.first_name}}
-            {% endif %}
-            <br>
-        </li>
-        {% empty %}
-        <p>No Comments yet.</p>
-        {% endfor %}
+    <div class="container">
+        {% include 'blog/navbar.html' %}
+        <h1>{{object.title}}</h1>
+        <hr>
+        <h2>{{ object.subttitle }}</h2>
+        <small>Posted at {{object.date_created}}</small>
+        <p>{{ object.body }}</p>
+        <hr>
+        <div id="comment_button" onclick="comment_event()">Add Comment</div>
+        <form id="comment_form" action="{% url 'blog:create_comment' object.id %}" method="post">
+            {% csrf_token %}
+            {{comment_form.as_p}}
+            <button type="submit" class="btn btn-success ms-2">submit</button>
+        </form>
+        <h2>Comments</h2>
+        <ol id="comments_container">
+            {% for comment in post.comments.all|slice:":10" %}
+                {% if forloop.counter < 10 %}
+                <li>
+                    <span class="fw-bold">{{comment.title}}</span> <br> {{comment.body}}
+                    {% if comment.user and comment.user.first_name %}
+                    <br>
+                    {{comment.user.first_name}}
+                    {% endif %}
+                    <br>
+                </li>
+                {% else %}
+                    <button id="comments_button" class="btn btn-success" onclick="get_comments()">read more</button>
+                    <div id="addComments"></div>
+                {% endif%}
+            {% empty %}
+            <p>No Comments yet.</p>
+            {% endfor %}
+        </ol>
 
-    </ol>
+        {% endblock %}
+        {% block scripts%}
+        <script>
+            comment_form = document.getElementById("comment_form");
+            comment_form.style.display = "none";
+            comment_section = document.getElementById("comment_button");
+            comment_section.classList.add("btn");
+            comment_section.classList.add("btn-warning");
+            comment_section.classList.add("ms-1");
+            comment_section.classList.add("mb-1");
+            function comment_event() {
+                comment_form.style.display = "block";
+                clicked = true
+                comment_section.classList.remove("btn")
+                comment_section.classList.remove("btn-warning")
+                comment_section.classList.add("fs-1")
+            }
+            var current_comment_length = 10;
+            function get_comments(){
+                var comments_button = document.getElementById("comments_button");
+                var comments_container = document.getElementById("comments_container");
+                comments_button.style.display = 'none';
+                
+                var comment_length = {{post.comments.count}}
+                var count = 10
+                if (comment_length > count){
+                    do{
+                        {% for comment in post.comments.all|slice:"10:" %}
+                        var node = document.createElement("li");
+                        var span = document.createElement("span");
+                        span.classList.add("fw-bold")
+                        var text = document.createTextNode("{{comment.title}}");
+                        span.appendChild(text)
+                        var br = document.createElement("br");
+                        node.appendChild(span)
+                        node.appendChild(br)
+                        comments_container.appendChild(node)
+                        count += 1
+                        {% endfor %}
+                    }
+                    while(count < comment_length)
 
-    {% endblock %}
-    {% block scripts%}
-    <script>
-        comment_form = document.getElementById("comment_form");
-        comment_form.style.display = "none";
-        comment_section = document.getElementById("comment_button");
-        comment_section.classList.add("btn");
-        comment_section.classList.add("btn-warning");
-        comment_section.classList.add("ms-1");
-        comment_section.classList.add("mb-1");
-        function comment_event() {
-            comment_form.style.display = "block";
-            clicked = true
-            comment_section.classList.remove("btn")
-            comment_section.classList.remove("btn-warning")
-            comment_section.classList.add("fs-1")
-        }
-    </script>
+                }
+            }
+        </script>
+    </div>
     {% endblock %}
 </body>
 
