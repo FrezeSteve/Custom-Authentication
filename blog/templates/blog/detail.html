@@ -69,8 +69,8 @@
                 comment_section.classList.remove("btn-warning")
                 comment_section.classList.add("fs-1")
             }
-            var current_comment_length = 2;
-            var hide_button = false
+            let current_comment_length = 2;
+            let hide_button = false
             function get_comments() {
                 $(document).ready(function () {
                     const url = "{% url 'blog:get_comments' comment_id='7723aacb-4303-4c29-9d10-0b4db6e79305' page_number=1 %}".split("/").slice(0, 4).join('/') + `/${current_comment_length}/`
@@ -81,7 +81,7 @@
                                 hide_button = true;
                             }
                             data.forEach(element => {
-                                var node = `<span class="fw-bold">${element.title}</span> <br> ${element.body}`
+                                let node = `<span class="fw-bold">${element.title}</span> <br> ${element.body}`
                                 if (element.registered_user){
                                     node += `<br> ${element.user}`
                                 }
