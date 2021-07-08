@@ -33,21 +33,20 @@
         <h2>Comments</h2>
         <ol id="comments_container">
             {% for comment in post.comments.all|slice:":10" %}
-            {% if forloop.counter < 10 %} <li>
-                <span class="fw-bold">{{comment.title}}</span> <br> {{comment.body}}
-                {% if comment.user and comment.user.first_name %}
-                <br>
-                {{comment.user.first_name}}
-                {% endif %}
-                <br>
-                </li>
+                {% if forloop.counter < 10 %} <li>
+                        <span class="fw-bold">{{comment.title}}</span> <br> {{comment.body}}
+                        {% if comment.user and comment.user.first_name %}
+                            <br> {{comment.user.first_name}}
+                        {% endif %}
+                        <br>
+                    </li>
                 {% else %}
-                <button id="comments_button" class="btn btn-success" onclick="get_comments()">read more</button>
-                <div id="addComments"></div>
+                    <button id="comments_button" class="btn btn-success" onclick="get_comments()">read more</button>
+                    <div id="addComments"></div>
                 {% endif%}
                 {% empty %}
-                <p>No Comments yet.</p>
-                {% endfor %}
+                    <p>No Comments yet.</p>
+            {% endfor %}
         </ol>
 
         {% endblock %}
@@ -55,6 +54,7 @@
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"
             integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
         <script>
+
             comment_form = document.getElementById("comment_form");
             comment_form.style.display = "none";
             comment_section = document.getElementById("comment_button");
@@ -69,9 +69,33 @@
                 comment_section.classList.remove("btn-warning")
                 comment_section.classList.add("fs-1")
             }
-            var current_comment_length = 10;
+            var current_comment_length = 2;
+            var hide_button = false
             function get_comments() {
-                alert("getting comments....")
+                $(document).ready(function () {
+                    const url = "{% url 'blog:get_comments' comment_id='7723aacb-4303-4c29-9d10-0b4db6e79305' page_number=1 %}".split("/").slice(0, 4).join('/') + `/${current_comment_length}/`
+                    $.get(url, function (data, status) {
+                        if (data.length > 0){
+                            if(!hide_button){
+                                $('#comments_button').remove()
+                                hide_button = true;
+                            }
+                            data.forEach(element => {
+                                var node = `<span class="fw-bold">${element.title}</span> <br> ${element.body}`
+                                if (element.registered_user){
+                                    node += `<br> ${element.user}`
+                                }
+                                node += '<br>'
+                                $("#comments_container").append(`<li>${node}</li>`)
+                            });
+                            if(hide_button){
+                                $("#comments_container").append('<button id="comments_button" class="btn btn-success" onclick="get_comments()">read more</button>')
+                                hide_button = false;
+                            }
+                        }
+                        current_comment_length += 1
+                    });
+                });
             }
         </script>
     </div>

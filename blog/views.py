@@ -1,8 +1,9 @@
 from accounts.models import DeviceTracker
 from django.contrib.auth import get_user_model
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.shortcuts import reverse, get_object_or_404
 from django.utils import timezone
+from django.views.decorators.http import require_http_methods
 from django.views.generic import ListView, DetailView, CreateView
 
 from .forms import CommentForm
@@ -76,3 +77,35 @@ class CreateCommentView(CreateView):
     def get(self, request, *args, **kwargs):
         instance = get_object_or_404(Post, id=self.kwargs.get('id'))
         return HttpResponseRedirect(reverse('blog:detail', kwargs={'slug': instance.slug}))
+
+
+# handles listing ajax requests
+@require_http_methods(["GET"])
+def list_comments(request, comment_id, page_number):
+    data = []
+    instance = Post.objects.filter(id=comment_id).first()
+    if instance:
+        page_number = 1 if not page_number else page_number
+        if page_number == 1:
+            data = [
+                {
+                    "title": i.title
+                    , "body": i.body
+                    , "published": i.published
+                    , "registered_user": i.registered_user
+                    , "user": str(i.user) if i.user else None
+                }
+                for i in instance.comments.all()[:int(page_number) * 10]
+            ]
+        else:
+            data = [
+                {
+                    "title": i.title
+                    , "body": i.body
+                    , "published": i.published
+                    , "registered_user": i.registered_user
+                    , "user": str(i.user) if i.user else None
+                }
+                for i in instance.comments.all()[(int(page_number)-1) * 10:int(page_number) * 10]
+            ]
+    return JsonResponse(data, safe=False)
