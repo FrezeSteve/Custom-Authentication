@@ -9,3 +9,7 @@ class CommentForm(forms.ModelForm):
             'title'
             , 'body'
         )
+
+
+class CreatePostForm(forms.Form):
+    author = forms.CharField()

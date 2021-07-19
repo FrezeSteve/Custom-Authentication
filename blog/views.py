@@ -1,12 +1,12 @@
 from accounts.models import DeviceTracker
 from django.contrib.auth import get_user_model
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
-from django.shortcuts import reverse, get_object_or_404
+from django.shortcuts import reverse, get_object_or_404, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from django.views.generic import ListView, DetailView, CreateView
 
-from .forms import CommentForm
+from .forms import CommentForm, CreatePostForm
 from .models import Post, Comment
 from .utils import custom_set_cookie
 
@@ -79,6 +79,17 @@ class CreateCommentView(CreateView):
         return HttpResponseRedirect(reverse('blog:detail', kwargs={'slug': instance.slug}))
 
 
+class CreatePostView(CreateView):
+    form_class = CreatePostForm
+    model = Post
+
+    def form_valid(self, form):
+        return super().form_valid(form)
+
+    def get(self, request, *args, **kwargs):
+        return render(request, "blog/create_post.html", {'form': self.get_form_class()})
+
+
 # handles listing ajax requests
 @require_http_methods(["GET"])
 def list_comments(request, comment_id, page_number):
@@ -106,6 +117,6 @@ def list_comments(request, comment_id, page_number):
                     , "registered_user": i.registered_user
                     , "user": str(i.user) if i.user else None
                 }
-                for i in instance.comments.all()[(int(page_number)-1) * 10:int(page_number) * 10]
+                for i in instance.comments.all()[(int(page_number) - 1) * 10:int(page_number) * 10]
             ]
     return JsonResponse(data, safe=False)
