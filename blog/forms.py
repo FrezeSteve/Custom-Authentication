@@ -1,5 +1,5 @@
 from django import forms
-from .models import Comment
+from .models import Comment, Post, Category
 
 
 class CommentForm(forms.ModelForm):
@@ -11,5 +11,27 @@ class CommentForm(forms.ModelForm):
         )
 
 
-class CreatePostForm(forms.Form):
-    author = forms.CharField()
+class CreatePostForm(forms.ModelForm):
+    title = forms.CharField(
+        widget=forms.TextInput(
+            attrs={'class': 'form-control', "placeholder": "title"})
+    )
+    body = forms.CharField(
+        widget=forms.Textarea(
+            attrs={'class': 'form-control', "placeholder": "body"})
+    )
+
+    category = forms.ModelChoiceField(
+        queryset=Category.objects.all()
+        , widget=forms.Select(
+            attrs={'class': 'form-control'})
+    )
+
+    class Meta:
+        model = Post
+        fields = (
+            'title'
+            , 'body'
+            , 'category'
+        )
+

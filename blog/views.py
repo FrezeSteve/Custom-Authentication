@@ -1,14 +1,15 @@
 from accounts.models import DeviceTracker
 from django.contrib.auth import get_user_model
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.shortcuts import reverse, get_object_or_404, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
-from django.views.generic import ListView, DetailView, CreateView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView
 
 from .forms import CommentForm, CreatePostForm
-from .models import Post, Comment
-from .utils import custom_set_cookie
+from .models import Post, Comment, Category
+from .utils import custom_set_cookie, get_create_device_tracker, unique_slug_generator, store_device_to_user
 
 User = get_user_model()
 
@@ -18,6 +19,11 @@ class PostListView(ListView):
     model = Post
     template_name = 'blog/home.html'
     queryset = Post.objects.filter(published=True, archived=False)
+
+    def get(self, request, *args, **kwargs):
+        response = super(PostListView, self).get(request, *args, **kwargs)
+        custom_set_cookie(self.request, response)
+        return response
 
 
 class PostDetailView(DetailView):
@@ -34,13 +40,6 @@ class PostDetailView(DetailView):
     def get(self, request, *args, **kwargs):
         response = super(PostDetailView, self).get(request, *args, **kwargs)
         custom_set_cookie(self.request, response)
-        # for i in range(10000):
-        #     Comment.objects.create(
-        #         title="stupid",
-        #         body="not that bad.",
-        #         post=self.get_object(),
-        #         device=DeviceTracker.objects.first()
-        #     )
         return response
 
 
@@ -49,27 +48,12 @@ class CreateCommentView(CreateView):
     model = Comment
 
     def form_valid(self, form):
-        # raise forms.ValidationError("Error!!")
-        session_id = self.request.get_signed_cookie('custom_session_id', default=None)
-        # get or create anonymous user
-        device = DeviceTracker.objects.filter(
-            device_id=session_id
-        )
-        if not device.exists():
-            device = DeviceTracker.objects.create(
-                device_id=session_id
-            )
-        else:
-            device = device.first()
-        device.last_used = timezone.now()
-        device.save()
+        device = get_create_device_tracker(self.request)
         # if authenticated
         if self.request.user.is_authenticated:
             form.instance.registered_user = True
             form.instance.user = self.request.user
-            logged_in_user = User.objects.filter(id=self.request.user.id).first()
-            logged_in_user.device.add(device)
-            logged_in_user.save()
+            store_device_to_user(self.request, device)
         form.instance.device = device
         form.instance.post = get_object_or_404(Post, id=self.kwargs.get('id'))
         return super().form_valid(form)
@@ -79,15 +63,77 @@ class CreateCommentView(CreateView):
         return HttpResponseRedirect(reverse('blog:detail', kwargs={'slug': instance.slug}))
 
 
-class CreatePostView(CreateView):
+class CreatePostView(LoginRequiredMixin, CreateView):
     form_class = CreatePostForm
     model = Post
 
     def form_valid(self, form):
+        # device
+        device = get_create_device_tracker(self.request)
+        store_device_to_user(self.request, device)
+        # form fields
+        form.instance.slug = unique_slug_generator(form.instance)
+        # author
+        form.instance.author = self.request.user
         return super().form_valid(form)
 
     def get(self, request, *args, **kwargs):
-        return render(request, "blog/create_post.html", {'form': self.get_form_class()})
+        if not request.user.is_staff:
+            return HttpResponseRedirect(reverse('blog:home'))
+        form = self.get_form_class()()
+        if Category.objects.count() == 0:
+            Category.objects.create(
+                name="Default"
+            )
+        return render(request, "blog/create_post.html", {'form': form})
+
+
+class EditPostView(LoginRequiredMixin, UpdateView):
+    form_class = CreatePostForm
+    model = Post
+    template_name = 'blog/create_post.html'
+
+    def form_valid(self, form):
+        # device
+        device = get_create_device_tracker(self.request)
+        store_device_to_user(self.request, device)
+        # form fields
+        form.instance.slug = unique_slug_generator(form.instance)
+        # author
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+    def post(self, request, *args, **kwargs):
+        return HttpResponseRedirect(reverse('blog:home'))
+
+    def get(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            return HttpResponseRedirect(reverse('blog:home'))
+        if Category.objects.count() == 0:
+            Category.objects.create(
+                name="Default"
+            )
+        return super().get(request, *args, **kwargs)
+
+
+class ProcessEditForm(CreateView):
+    form_class = CreatePostForm
+    model = Post
+
+    def form_valid(self, form):
+        device = get_create_device_tracker(self.request)
+        # if authenticated
+        if self.request.user.is_authenticated:
+            form.instance.registered_user = True
+            form.instance.user = self.request.user
+            store_device_to_user(self.request, device)
+        form.instance.device = device
+        form.instance.post = get_object_or_404(Post, id=self.kwargs.get('pk'))
+        return super().form_valid(form)
+
+    def get(self, request, *args, **kwargs):
+        instance = get_object_or_404(Post, id=self.kwargs.get('pk'))
+        return HttpResponseRedirect(reverse('blog:detail', kwargs={'slug': instance.slug}))
 
 
 # handles listing ajax requests

@@ -29,6 +29,7 @@ class Post(models.Model):
     date_published = models.DateTimeField(null=True, blank=True)
     date_archived = models.DateTimeField(null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="posts")
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="author", null=True)
 
     def __str__(self): return self.title
 
@@ -39,16 +40,21 @@ class Post(models.Model):
         return reverse('blog:detail', kwargs={'slug': self.slug})
 
 
+class PostDeviceTracker(models.Model):
+    post = models.OneToOneField(Post, on_delete=models.CASCADE, related_name='post_device_tracker')
+    devices = models.ManyToManyField(DeviceTracker)
+
+
 class Comment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255)
     body = models.TextField()
     published = models.BooleanField(default=False)
-    archived = models.BooleanField(default=False)
+    deleted = models.BooleanField(default=False)
     date_created = models.DateTimeField(default=timezone.now)
     date_updated = models.DateTimeField(auto_now=True)
     date_published = models.DateTimeField(null=True, blank=True)
-    date_archived = models.DateTimeField(null=True, blank=True)
+    date_deleted = models.DateTimeField(null=True, blank=True)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
     # who created or edited the comment.
     registered_user = models.BooleanField(default=False)

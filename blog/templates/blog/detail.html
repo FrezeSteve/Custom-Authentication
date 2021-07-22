@@ -25,6 +25,7 @@
         <p>{{ object.body }}</p>
         <hr>
         <div id="comment_button" onclick="comment_event()">Add Comment</div>
+        <a id="edit_post_button" class="btn btn-warning mb-1" href="{% url 'blog:edit_post' object.id %}">Edit Post</a>
         <form id="comment_form" action="{% url 'blog:create_comment' object.id %}" method="post">
             {% csrf_token %}
             {{comment_form.as_p}}
@@ -59,14 +60,16 @@
             comment_form.style.display = "none";
             comment_section = document.getElementById("comment_button");
             comment_section.classList.add("btn");
-            comment_section.classList.add("btn-warning");
+            comment_section.classList.add("btn-primary");
             comment_section.classList.add("ms-1");
             comment_section.classList.add("mb-1");
             function comment_event() {
                 comment_form.style.display = "block";
+                const edit_button = document.getElementById("edit_post_button");
+                edit_button.style.display = "none";
                 clicked = true
                 comment_section.classList.remove("btn")
-                comment_section.classList.remove("btn-warning")
+                comment_section.classList.remove("btn-primary")
                 comment_section.classList.add("fs-1")
             }
             let current_comment_length = 2;
