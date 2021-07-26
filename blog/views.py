@@ -26,7 +26,7 @@ class PostListView(ListView):
         return response
 
 
-class DraftPostListView(ListView):
+class DraftPostListView(LoginRequiredMixin, ListView):
     model = Post
     template_name = 'blog/home.html'
     queryset = Post.objects.filter(published=False, archived=False)
@@ -34,10 +34,12 @@ class DraftPostListView(ListView):
     def get(self, request, *args, **kwargs):
         response = super(DraftPostListView, self).get(request, *args, **kwargs)
         custom_set_cookie(self.request, response)
+        if not request.user.is_staff:
+            return HttpResponseRedirect(reverse('blog:home'))
         return response
 
 
-class ArchivedPostListView(ListView):
+class ArchivedPostListView(LoginRequiredMixin, ListView):
     model = Post
     template_name = 'blog/home.html'
     queryset = Post.objects.filter(published=True, archived=True)
@@ -45,10 +47,12 @@ class ArchivedPostListView(ListView):
     def get(self, request, *args, **kwargs):
         response = super(ArchivedPostListView, self).get(request, *args, **kwargs)
         custom_set_cookie(self.request, response)
+        if not request.user.is_staff:
+            return HttpResponseRedirect(reverse('blog:home'))
         return response
 
 
-class PostDetailView(DetailView):
+class PostDetailView(LoginRequiredMixin, DetailView):
     model = Post
     template_name = 'blog/detail.html'
 
@@ -62,6 +66,8 @@ class PostDetailView(DetailView):
     def get(self, request, *args, **kwargs):
         response = super(PostDetailView, self).get(request, *args, **kwargs)
         custom_set_cookie(self.request, response)
+        if not request.user.is_staff:
+            return HttpResponseRedirect(reverse('blog:home'))
         return response
 
 
@@ -145,7 +151,7 @@ class EditPostView(LoginRequiredMixin, UpdateView):
         return super().get(request, *args, **kwargs)
 
 
-class ProcessEditForm(CreateView):
+class ProcessEditForm(LoginRequiredMixin, CreateView):
     form_class = CreatePostForm
     model = Post
 

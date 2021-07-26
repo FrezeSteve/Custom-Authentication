@@ -33,24 +33,24 @@
         <p>{{ object.body }}</p>
         <hr>
         <div class="row mx-0">
-            <div class="col-12 col-md-2">
+            <div id="comment_div_container" class="col-12 col-lg-2">
                 <div id="comment_button" class="full_width" onclick="comment_event()">Add Comment</div>
             </div>
             {% if not object.published %}
-            <div class="col-12 col-md-2">
+            <div class="col-12 col-lg-2">
                 <!-- Button trigger modal -->
-                <button type="button" class="hidden_buttons full_width  btn btn-success mb-1" data-bs-toggle="modal"
-                    data-bs-target="#staticBackdrop">
+                <button type="button" class="hidden_buttons full_width  btn btn-success mb-1" onclick="publish_modal()"
+                    data-bs-toggle="modal" data-bs-target="#staticBackdrop" data-bs-whatever="@getbootstrap">
                     Publish
                 </button>
             </div>
             {% endif %}
-            <div class="col-12 col-md-2">
+            <div class="col-12 col-lg-2">
                 <a class="hidden_buttons full_width btn btn-warning mb-1"
                     href="{% url 'blog:edit_post' object.id %}">Edit</a>
             </div>
             {% if not object.archived %}
-            <div class="col-12 col-md-2">
+            <div class="col-12 col-lg-2">
                 <!-- Button trigger modal -->
                 <button type="button" class="full_width hidden_buttons btn btn-danger mb-1" data-bs-toggle="modal"
                     data-bs-target="#staticBackdrop">
@@ -65,7 +65,7 @@
         <form id="comment_form" action="{% url 'blog:create_comment' object.id %}" method="post">
             {% csrf_token %}
             {{comment_form.as_p}}
-            <button type="submit" class="full_width btn btn-success ms-md-2">submit</button>
+            <button type="submit" class="full_width btn btn-success">submit</button>
         </form>
         <h2>Comments</h2>
         <ol id="comments_container">
@@ -102,6 +102,27 @@
                 })
             }
             setup_button()
+            function publish_modal() {
+                $(document).ready(function () {
+                    const exampleModal = $('#staticBackdrop')[0]
+                    exampleModal.addEventListener('show.bs.modal', function (event) {
+                        console.log("Working");
+                        // Button that triggered the modal
+                        var button = event.relatedTarget
+                        // Extract info from data-bs-* attributes
+                        var recipient = button.getAttribute('data-bs-whatever')
+                        // If necessary, you could initiate an AJAX request here
+                        // and then do the updating in a callback.
+                        // Update the modal's content.
+                        var modalTitle = exampleModal.querySelector('.modal-title')
+                        var modalBodyInput = exampleModal.querySelector('.modal-body input')
+
+                        modalTitle.textContent = 'New message to ' + recipient
+                        modalBodyInput.value = recipient
+                    })
+                })
+            }
+            publish_modal()
             function comment_event() {
                 $(document).ready(function () {
                     const comment_form = $('#comment_form')[0]
@@ -110,12 +131,16 @@
                     comment_section.classList.remove("btn")
                     comment_section.classList.remove("btn-primary")
                     comment_section.classList.add("fs-1")
+                    const one_level_up = $('#comment_div_container')[0];
+                    one_level_up.classList.remove("col-lg-2")
+                    one_level_up.classList.add("col-lg-12")
                     const hidden_buttons = $('.hidden_buttons')
                     for (let i = 0; i < hidden_buttons.length; i++) {
                         hidden_buttons[i].style.display = "none";
                     }
                 })
             }
+
             // function comment_event() {
             //     // var hiden_buttons = document.getElementsByClassName("hidden_buttons");
             //     var hiden_buttons = document.getElementsByClassName("hidden_buttons");
@@ -124,14 +149,14 @@
             //     //     element.style.display = "none";
             //     //     console.log("working");
             //     // });
-            //     // $('#myModal').on('show.bs.modal', function (event) {
-            //     //     var button = $(event.relatedTarget)
-            //     //     var header = button.data('header')
-            //     //     var content = button.data('content')
-            //     //     var modal = $(this)
-            //     //     modal.find('.modal-title').text(header)
-            //     //     modal.find('.modal-modalCnt').val(content)
-            //     // })
+            // $('#myModal').on('show.bs.modal', function (event) {
+            //     var button = $(event.relatedTarget)
+            //     var header = button.data('header')
+            //     var content = button.data('content')
+            //     var modal = $(this)
+            //     modal.find('.modal-title').text(header)
+            //     modal.find('.modal-modalCnt').val(content)
+            // })
             //     // clicked = true
 
             // }
