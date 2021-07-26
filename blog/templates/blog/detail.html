@@ -11,11 +11,19 @@
     <meta name="robots" content="index, follow" />
     <!-- <meta name="robots" content="noindex, nofollow" /> -->
     <meta name="description" content="{{object.subtitle}}">
+    <style>
+        @media only screen and (max-width: 768px) {
+            .full_width {
+                width: 100% !important;
+            }
+        }
+    </style>
     {% endblock %}
 </head>
 
 <body>
     {% block content%}
+    {% include 'blog/modal.html' %}
     <div class="container">
         {% include 'blog/navbar.html' %}
         <h1>{{object.title}}</h1>
@@ -24,30 +32,58 @@
         <small>Posted at {{object.date_created}}</small>
         <p>{{ object.body }}</p>
         <hr>
-        <div id="comment_button" onclick="comment_event()">Add Comment</div>
-        <a id="edit_post_button" class="btn btn-warning mb-1" href="{% url 'blog:edit_post' object.id %}">Edit Post</a>
+        <div class="row mx-0">
+            <div class="col-12 col-md-2">
+                <div id="comment_button" class="full_width" onclick="comment_event()">Add Comment</div>
+            </div>
+            {% if not object.published %}
+            <div class="col-12 col-md-2">
+                <!-- Button trigger modal -->
+                <button type="button" class="hidden_buttons full_width  btn btn-success mb-1" data-bs-toggle="modal"
+                    data-bs-target="#staticBackdrop">
+                    Publish
+                </button>
+            </div>
+            {% endif %}
+            <div class="col-12 col-md-2">
+                <a class="hidden_buttons full_width btn btn-warning mb-1"
+                    href="{% url 'blog:edit_post' object.id %}">Edit</a>
+            </div>
+            {% if not object.archived %}
+            <div class="col-12 col-md-2">
+                <!-- Button trigger modal -->
+                <button type="button" class="full_width hidden_buttons btn btn-danger mb-1" data-bs-toggle="modal"
+                    data-bs-target="#staticBackdrop">
+                    Delete
+                </button>
+            </div>
+            {% endif %}
+
+        </div>
+
+
         <form id="comment_form" action="{% url 'blog:create_comment' object.id %}" method="post">
             {% csrf_token %}
             {{comment_form.as_p}}
-            <button type="submit" class="btn btn-success ms-2">submit</button>
+            <button type="submit" class="full_width btn btn-success ms-md-2">submit</button>
         </form>
         <h2>Comments</h2>
         <ol id="comments_container">
             {% for comment in post.comments.all|slice:":10" %}
-                {% if forloop.counter < 10 %} <li>
-                        <span class="fw-bold">{{comment.title}}</span> <br> {{comment.body}}
-                        {% if comment.user and comment.user.first_name %}
-                            <br> {{comment.user.first_name}}
-                        {% endif %}
-                        <br>
-                    </li>
+            {% if forloop.counter < 10 %} <li>
+                <span class="fw-bold">{{comment.title}}</span> <br> {{comment.body}}
+                {% if comment.user and comment.user.first_name %}
+                <br> {{comment.user.first_name}}
+                {% endif %}
+                <br>
+                </li>
                 {% else %}
-                    <button id="comments_button" class="btn btn-success" onclick="get_comments()">read more</button>
-                    <div id="addComments"></div>
+                <button id="comments_button" class="btn btn-success" onclick="get_comments()">read more</button>
+                <div id="addComments"></div>
                 {% endif%}
                 {% empty %}
-                    <p>No Comments yet.</p>
-            {% endfor %}
+                <p>No Comments yet.</p>
+                {% endfor %}
         </ol>
 
         {% endblock %}
@@ -55,43 +91,70 @@
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"
             integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
         <script>
-
-            comment_form = document.getElementById("comment_form");
-            comment_form.style.display = "none";
-            comment_section = document.getElementById("comment_button");
-            comment_section.classList.add("btn");
-            comment_section.classList.add("btn-primary");
-            comment_section.classList.add("ms-1");
-            comment_section.classList.add("mb-1");
-            function comment_event() {
-                comment_form.style.display = "block";
-                const edit_button = document.getElementById("edit_post_button");
-                edit_button.style.display = "none";
-                clicked = true
-                comment_section.classList.remove("btn")
-                comment_section.classList.remove("btn-primary")
-                comment_section.classList.add("fs-1")
+            const comment_form = $('#comment_form')[0]
+            const comment_section = $('#comment_button')[0]
+            function setup_button() {
+                $(document).ready(function () {
+                    comment_form.style.display = "none";
+                    comment_section.classList.add("btn");
+                    comment_section.classList.add("btn-primary");
+                    comment_section.classList.add("mb-1");
+                })
             }
+            setup_button()
+            function comment_event() {
+                $(document).ready(function () {
+                    const comment_form = $('#comment_form')[0]
+                    const comment_section = $('#comment_button')[0]
+                    comment_form.style.display = "block";
+                    comment_section.classList.remove("btn")
+                    comment_section.classList.remove("btn-primary")
+                    comment_section.classList.add("fs-1")
+                    const hidden_buttons = $('.hidden_buttons')
+                    for (let i = 0; i < hidden_buttons.length; i++) {
+                        hidden_buttons[i].style.display = "none";
+                    }
+                })
+            }
+            // function comment_event() {
+            //     // var hiden_buttons = document.getElementsByClassName("hidden_buttons");
+            //     var hiden_buttons = document.getElementsByClassName("hidden_buttons");
+            //     console.log(hide_button);
+            //     // hiden_buttons.forEach(element => {
+            //     //     element.style.display = "none";
+            //     //     console.log("working");
+            //     // });
+            //     // $('#myModal').on('show.bs.modal', function (event) {
+            //     //     var button = $(event.relatedTarget)
+            //     //     var header = button.data('header')
+            //     //     var content = button.data('content')
+            //     //     var modal = $(this)
+            //     //     modal.find('.modal-title').text(header)
+            //     //     modal.find('.modal-modalCnt').val(content)
+            //     // })
+            //     // clicked = true
+
+            // }
             let current_comment_length = 2;
             let hide_button = false
             function get_comments() {
                 $(document).ready(function () {
                     const url = "{% url 'blog:get_comments' comment_id='7723aacb-4303-4c29-9d10-0b4db6e79305' page_number=1 %}".split("/").slice(0, 4).join('/') + `/${current_comment_length}/`
                     $.get(url, function (data, status) {
-                        if (data.length > 0){
-                            if(!hide_button){
+                        if (data.length > 0) {
+                            if (!hide_button) {
                                 $('#comments_button').remove()
                                 hide_button = true;
                             }
                             data.forEach(element => {
                                 let node = `<span class="fw-bold">${element.title}</span> <br> ${element.body}`
-                                if (element.registered_user){
+                                if (element.registered_user) {
                                     node += `<br> ${element.user}`
                                 }
                                 node += '<br>'
                                 $("#comments_container").append(`<li>${node}</li>`)
                             });
-                            if(hide_button){
+                            if (hide_button) {
                                 $("#comments_container").append('<button id="comments_button" class="btn btn-success" onclick="get_comments()">read more</button>')
                                 hide_button = false;
                             }

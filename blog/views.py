@@ -26,6 +26,28 @@ class PostListView(ListView):
         return response
 
 
+class DraftPostListView(ListView):
+    model = Post
+    template_name = 'blog/home.html'
+    queryset = Post.objects.filter(published=False, archived=False)
+
+    def get(self, request, *args, **kwargs):
+        response = super(DraftPostListView, self).get(request, *args, **kwargs)
+        custom_set_cookie(self.request, response)
+        return response
+
+
+class ArchivedPostListView(ListView):
+    model = Post
+    template_name = 'blog/home.html'
+    queryset = Post.objects.filter(published=True, archived=True)
+
+    def get(self, request, *args, **kwargs):
+        response = super(ArchivedPostListView, self).get(request, *args, **kwargs)
+        custom_set_cookie(self.request, response)
+        return response
+
+
 class PostDetailView(DetailView):
     model = Post
     template_name = 'blog/detail.html'
@@ -98,13 +120,20 @@ class EditPostView(LoginRequiredMixin, UpdateView):
         device = get_create_device_tracker(self.request)
         store_device_to_user(self.request, device)
         # form fields
-        form.instance.slug = unique_slug_generator(form.instance)
+        # form.instance.slug = unique_slug_generator(form.instance)
         # author
         form.instance.author = self.request.user
         return super().form_valid(form)
 
-    def post(self, request, *args, **kwargs):
-        return HttpResponseRedirect(reverse('blog:home'))
+    # def get_object(self, queryset=None):
+    #     instance = Post.objects.filter(id=self.kwargs.get('pk')).first()
+    #     if instance:
+    #         instance.pk = None
+    #         instance.save()
+    #     return instance
+
+    # def post(self, request, *args, **kwargs):
+    #     return HttpResponseRedirect(reverse('blog:home'))
 
     def get(self, request, *args, **kwargs):
         if not request.user.is_staff:
@@ -166,3 +195,10 @@ def list_comments(request, comment_id, page_number):
                 for i in instance.comments.all()[(int(page_number) - 1) * 10:int(page_number) * 10]
             ]
     return JsonResponse(data, safe=False)
+
+
+def archive_post(request, pk):
+    instance = get_object_or_404(Post, id=pk)
+    instance.archived = True
+    instance.save()
+    return HttpResponseRedirect(reverse('blog:detail', kwargs={'slug': instance.slug}))
