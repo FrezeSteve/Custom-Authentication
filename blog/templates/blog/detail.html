@@ -39,8 +39,7 @@
             {% if not object.published %}
             <div class="col-12 col-lg-2">
                 <!-- Button trigger modal -->
-                <button type="button" class="hidden_buttons full_width  btn btn-success mb-1" onclick="publish_modal()"
-                    data-bs-toggle="modal" data-bs-target="#staticBackdrop" data-bs-whatever="publish">
+                <button id="publish_button" type="button" class="hidden_buttons full_width  btn btn-success mb-1">
                     Publish
                 </button>
             </div>
@@ -49,15 +48,14 @@
                 <a class="hidden_buttons full_width btn btn-warning mb-1"
                     href="{% url 'blog:edit_post' object.id %}">Edit</a>
             </div>
-            {% if not object.archived %}
+            {% if object.archived is False and object.published %}
             <div class="col-12 col-lg-2">
                 <!-- Button trigger modal -->
-                <button type="button" class="full_width hidden_buttons btn btn-danger mb-1" onclick="publish_modal()" data-bs-whatever="delete">
+                <button id="delete_button" type="button" class="full_width hidden_buttons btn btn-danger mb-1">
                     Delete
                 </button>
             </div>
             {% endif %}
-
         </div>
 
 
@@ -69,20 +67,20 @@
         <h2>Comments</h2>
         <ol id="comments_container">
             {% for comment in post.comments.all|slice:":10" %}
-                {% if forloop.counter < 10 %} <li>
-                    <span class="fw-bold">{{comment.title}}</span> <br> {{comment.body}}
-                    {% if comment.user and comment.user.first_name %}
-                    <br> {{comment.user.first_name}}
-                    {% endif %}
-                    <br>
-                    </li>
-                    {% else %}
-                    <button id="comments_button" class="btn btn-success" onclick="get_comments()">read more</button>
-                    <div id="addComments"></div>
+            {% if forloop.counter < 10 %} <li>
+                <span class="fw-bold">{{comment.title}}</span> <br> {{comment.body}}
+                {% if comment.user and comment.user.first_name %}
+                <br> {{comment.user.first_name}}
+                {% endif %}
+                <br>
+                </li>
+                {% else %}
+                <button id="comments_button" class="btn btn-success" onclick="get_comments()">read more</button>
+                <div id="addComments"></div>
                 {% endif%}
-            {% empty %}
+                {% empty %}
                 <p>No Comments yet.</p>
-            {% endfor %}
+                {% endfor %}
         </ol>
         {% endblock %}
         {% block scripts%}
@@ -100,31 +98,78 @@
             setup_button()
             function publish_modal() {
                 $(document).ready(function () {
-                    const exampleModal = $('#staticBackdrop')
+                    const delete_button = $('#delete_button')
+                    const publish_button = $('#publish_button')
+                    const close_modal_button = $('#close_modal_button')
+                    const modal_element = $('#staticBackdrop')
+                    const modal_element_js = document.getElementById('staticBackdrop')
+                    const modal_title = $('#staticBackdrop .modal-title')
+                    const modal_body = $('#staticBackdrop .modal-body')
                     const options = {
                         focus: true,
                         keyboard: false,
-                        backdrop:"static"
+                        backdrop: "static"
                     }
-                    const modal_element = document.getElementById('staticBackdrop')
-                    const myModal = new bootstrap.Modal(modal_element, options)
-                    myModal.show()
-                    // exampleModal.on('show.bs.modal', function (event) {
-                    //     // Button that triggered the modal
-                    //     const button = event.relatedTarget
-                    //     // Extract info from data-bs-* attributes
-                    //     const recipient = button.getAttribute('data-bs-whatever')
-                    //     console.log(recipient);
-                    //     // // If necessary, you could initiate an AJAX request here
-                    //     // // and then do the updating in a callback.
-                    //     // // Update the modal's content.
-                    //     // const modalTitle = exampleModal.querySelector('.modal-title')
-                    //     // // const modalBodyInput = exampleModal.querySelector('.modal-body input')
-
-                    //     // modalTitle.textContent = 'New message to ' + recipient
-                    //     // // modalBodyInput.value = recipient
-                    // })
+                    const myModal = new bootstrap.Modal(modal_element_js, options)
+                    modal_element_js.addEventListener('hidden.bs.modal', function (event) {
+                        modal_body.empty()
+                    })
+                    close_modal_button.on('click', function (event) {
+                        const options = {
+                            focus: true,
+                            keyboard: false,
+                            backdrop: "static"
+                        }
+                        myModal.hide()
+                    })
+                    publish_button.on('click', function (event) {
+                        modal_title.text(`Publish {{ object.title }}`)
+                        const button = `
+                                <a class="btn btn-success" style="width: 100% !important;" href="{% url 'blog:publish_post' object.id %}">Publish</a>
+                        `
+                        modal_body.append(button)
+                        myModal.show()
+                    })
+                    delete_button.on('click', function (event) {
+                        modal_title.text(`Delete {{ object.title }}`)
+                        // const button = `<a class="btn btn-danger  col-12 col-lg-6" href="{% url 'blog:archive_post' object.id %}">Delete</a>`
+                        const button = `
+                                <a class="btn btn-danger" style="width: 100% !important;" href="{% url 'blog:archive_post' object.id %}">Delete</a>
+                        `
+                        modal_body.append(button)
+                        const options = {
+                            focus: true,
+                            keyboard: false,
+                            backdrop: "static"
+                        }
+                        const myModal = new bootstrap.Modal(document.getElementById('staticBackdrop'), options)
+                        myModal.show()
+                    })
                 })
+                // const exampleModal = $('#staticBackdrop')
+                // const options = {
+                //     focus: true,
+                //     keyboard: false,
+                //     backdrop: "static"
+                // }
+                // const modal_element = document.getElementById('staticBackdrop')
+                // const myModal = new bootstrap.Modal(modal_element, options)
+                // myModal.show()
+                // exampleModal.on('show.bs.modal', function (event) {
+                //     // Button that triggered the modal
+                //     const button = event.relatedTarget
+                //     // Extract info from data-bs-* attributes
+                //     const recipient = button.getAttribute('data-bs-whatever')
+                //     console.log(recipient);
+                //     // // If necessary, you could initiate an AJAX request here
+                //     // // and then do the updating in a callback.
+                //     // // Update the modal's content.
+                //     // const modalTitle = exampleModal.querySelector('.modal-title')
+                //     // // const modalBodyInput = exampleModal.querySelector('.modal-body input')
+
+                //     // modalTitle.textContent = 'New message to ' + recipient
+                //     // // modalBodyInput.value = recipient
+                // })
             }
             publish_modal()
             function comment_event() {

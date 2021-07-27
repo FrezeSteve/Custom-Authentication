@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
     PostListView, PostDetailView, CreateCommentView, list_comments, CreatePostView, EditPostView,
-    ProcessEditForm, archive_post, DraftPostListView, ArchivedPostListView
+    ProcessEditForm, archive_post, DraftPostListView, ArchivedPostListView, publish_post
 )
 
 app_name = "blog"
@@ -19,4 +19,5 @@ urlpatterns = [
     , path("blog/edit_post/<uuid:pk>/", EditPostView.as_view(), name="edit_post")
     , path("blog/process_edit_form/<uuid:pk>/", ProcessEditForm.as_view(), name="process_edit_form")
     , path("blog/archive_post/<uuid:pk>/", archive_post, name="archive_post")
+    , path("blog/publish_post/<uuid:pk>/", publish_post, name="publish_post")
 ]

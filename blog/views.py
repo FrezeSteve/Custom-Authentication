@@ -208,3 +208,10 @@ def archive_post(request, pk):
     instance.archived = True
     instance.save()
     return HttpResponseRedirect(reverse('blog:detail', kwargs={'slug': instance.slug}))
+
+
+def publish_post(request, pk):
+    instance = get_object_or_404(Post, id=pk)
+    instance.published = True
+    instance.save()
+    return HttpResponseRedirect(reverse('blog:detail', kwargs={'slug': instance.slug}))
