@@ -36,6 +36,7 @@
             <div id="comment_div_container" class="col-12 col-lg-2">
                 <div id="comment_button" class="full_width" onclick="comment_event()">Add Comment</div>
             </div>
+            {% if request.user.is_staff %}
             {% if not object.published %}
             <div class="col-12 col-lg-2">
                 <!-- Button trigger modal -->
@@ -56,6 +57,7 @@
                 </button>
             </div>
             {% endif %}
+            {% endif %}
         </div>
 
 
@@ -66,21 +68,21 @@
         </form>
         <h2>Comments</h2>
         <ol id="comments_container">
-            {% for comment in post.comments.all|slice:":10" %}
-            {% if forloop.counter < 10 %} <li>
-                <span class="fw-bold">{{comment.title}}</span> <br> {{comment.body}}
-                {% if comment.user and comment.user.first_name %}
-                <br> {{comment.user.first_name}}
-                {% endif %}
-                <br>
-                </li>
-                {% else %}
+            {% for comment in post.comments.all|slice:":11" %}
+                {% if forloop.counter <= 10 %} <li>
+                    <span class="fw-bold">{{comment.title}}</span> <br> {{comment.body}}
+                    {% if comment.user and comment.user.first_name %}
+                    <br> {{comment.user.first_name}}
+                    {% endif %}
+                    <br>
+                    </li>
+                {% elif forloop.counter > 10 %}
                 <button id="comments_button" class="btn btn-success" onclick="get_comments()">read more</button>
                 <div id="addComments"></div>
                 {% endif%}
-                {% empty %}
-                <p>No Comments yet.</p>
-                {% endfor %}
+            {% empty %}
+            <p>No Comments yet.</p>
+            {% endfor %}
         </ol>
         {% endblock %}
         {% block scripts%}
@@ -96,6 +98,7 @@
                 })
             }
             setup_button()
+            {% if request.user.is_staff %}
             function publish_modal() {
                 $(document).ready(function () {
                     const delete_button = $('#delete_button')
@@ -172,6 +175,7 @@
                 // })
             }
             publish_modal()
+            {% endif %}
             function comment_event() {
                 $(document).ready(function () {
                     comment_form.css('display', 'block')
@@ -184,49 +188,33 @@
                     hidden_buttons.css('display', 'none')
                 })
             }
-
-            // function comment_event() {
-            //     // var hiden_buttons = document.getElementsByClassName("hidden_buttons");
-            //     var hiden_buttons = document.getElementsByClassName("hidden_buttons");
-            //     console.log(hide_button);
-            //     // hiden_buttons.forEach(element => {
-            //     //     element.style.display = "none";
-            //     //     console.log("working");
-            //     // });
-            // $('#myModal').on('show.bs.modal', function (event) {
-            //     var button = $(event.relatedTarget)
-            //     var header = button.data('header')
-            //     var content = button.data('content')
-            //     var modal = $(this)
-            //     modal.find('.modal-title').text(header)
-            //     modal.find('.modal-modalCnt').val(content)
-            // })
-            //     // clicked = true
-
-            // }
             let current_comment_length = 2;
             let hide_button = false
             function get_comments() {
                 $(document).ready(function () {
-                    const url = "{% url 'blog:get_comments' comment_id='7723aacb-4303-4c29-9d10-0b4db6e79305' page_number=1 %}".split("/").slice(0, 4).join('/') + `/${current_comment_length}/`
+                    const url = "{% url 'blog:get_comments' post_id=object.id page_number=1 %}".split("/").slice(0, 4).join('/') + `/${current_comment_length}/`
                     $.get(url, function (data, status) {
                         if (data.length > 0) {
                             if (!hide_button) {
                                 $('#comments_button').remove()
                                 hide_button = true;
                             }
-                            data.forEach(element => {
-                                let node = `<span class="fw-bold">${element.title}</span> <br> ${element.body}`
-                                if (element.registered_user) {
-                                    node += `<br> ${element.user}`
+                            data.forEach((element, index) => {
+                                if(index <= 10){
+                                    let node = `<span class="fw-bold">${element.title}</span> <br> ${element.body}`
+                                    if (element.registered_user) {
+                                        node += `<br> ${element.user}`
+                                    }
+                                    node += '<br>'
+                                    $("#comments_container").append(`<li>${node}</li>`)
                                 }
-                                node += '<br>'
-                                $("#comments_container").append(`<li>${node}</li>`)
+                                else{
+                                    if (hide_button) {
+                                        $("#comments_container").append('<button id="comments_button" class="btn btn-success" onclick="get_comments()">read more</button>')
+                                        hide_button = false;
+                                    }
+                                }
                             });
-                            if (hide_button) {
-                                $("#comments_container").append('<button id="comments_button" class="btn btn-success" onclick="get_comments()">read more</button>')
-                                hide_button = false;
-                            }
                         }
                         current_comment_length += 1
                     });

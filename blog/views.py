@@ -52,7 +52,7 @@ class ArchivedPostListView(LoginRequiredMixin, ListView):
         return response
 
 
-class PostDetailView(LoginRequiredMixin, DetailView):
+class PostDetailView(DetailView):
     model = Post
     template_name = 'blog/detail.html'
 
@@ -66,8 +66,6 @@ class PostDetailView(LoginRequiredMixin, DetailView):
     def get(self, request, *args, **kwargs):
         response = super(PostDetailView, self).get(request, *args, **kwargs)
         custom_set_cookie(self.request, response)
-        if not request.user.is_staff:
-            return HttpResponseRedirect(reverse('blog:home'))
         return response
 
 
@@ -173,9 +171,9 @@ class ProcessEditForm(LoginRequiredMixin, CreateView):
 
 # handles listing ajax requests
 @require_http_methods(["GET"])
-def list_comments(request, comment_id, page_number):
+def list_comments(request, post_id, page_number):
     data = []
-    instance = Post.objects.filter(id=comment_id).first()
+    instance = Post.objects.filter(id=post_id).first()
     if instance:
         page_number = 1 if not page_number else page_number
         if page_number == 1:
@@ -187,7 +185,7 @@ def list_comments(request, comment_id, page_number):
                     , "registered_user": i.registered_user
                     , "user": str(i.user) if i.user else None
                 }
-                for i in instance.comments.all()[:int(page_number) * 10]
+                for i in instance.comments.all()[:(int(page_number) * 10) + 1]
             ]
         else:
             data = [
@@ -198,7 +196,7 @@ def list_comments(request, comment_id, page_number):
                     , "registered_user": i.registered_user
                     , "user": str(i.user) if i.user else None
                 }
-                for i in instance.comments.all()[(int(page_number) - 1) * 10:int(page_number) * 10]
+                for i in instance.comments.all()[(int(page_number) - 1) * 10:(int(page_number) * 10) + 1]
             ]
     return JsonResponse(data, safe=False)
 
