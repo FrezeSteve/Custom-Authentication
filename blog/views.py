@@ -201,15 +201,21 @@ def list_comments(request, post_id, page_number):
     return JsonResponse(data, safe=False)
 
 
+# handles listing ajax requests
+@require_http_methods(["GET"])
 def archive_post(request, pk):
-    instance = get_object_or_404(Post, id=pk)
-    instance.archived = True
-    instance.save()
+    if request.user.is_staff:
+        instance = get_object_or_404(Post, id=pk)
+        instance.archived = True
+        instance.save()
     return HttpResponseRedirect(reverse('blog:detail', kwargs={'slug': instance.slug}))
 
 
+# handles listing ajax requests
+@require_http_methods(["GET"])
 def publish_post(request, pk):
-    instance = get_object_or_404(Post, id=pk)
-    instance.published = True
-    instance.save()
+    if request.user.is_staff:
+        instance = get_object_or_404(Post, id=pk)
+        instance.published = True
+        instance.save()
     return HttpResponseRedirect(reverse('blog:detail', kwargs={'slug': instance.slug}))
