@@ -40,7 +40,7 @@
             <div class="col-12 col-lg-2">
                 <!-- Button trigger modal -->
                 <button type="button" class="hidden_buttons full_width  btn btn-success mb-1" onclick="publish_modal()"
-                    data-bs-toggle="modal" data-bs-target="#staticBackdrop" data-bs-whatever="@getbootstrap">
+                    data-bs-toggle="modal" data-bs-target="#staticBackdrop" data-bs-whatever="publish">
                     Publish
                 </button>
             </div>
@@ -52,8 +52,7 @@
             {% if not object.archived %}
             <div class="col-12 col-lg-2">
                 <!-- Button trigger modal -->
-                <button type="button" class="full_width hidden_buttons btn btn-danger mb-1" data-bs-toggle="modal"
-                    data-bs-target="#staticBackdrop">
+                <button type="button" class="full_width hidden_buttons btn btn-danger mb-1" onclick="publish_modal()" data-bs-whatever="delete">
                     Delete
                 </button>
             </div>
@@ -101,22 +100,30 @@
             setup_button()
             function publish_modal() {
                 $(document).ready(function () {
-                    const exampleModal = $('#staticBackdrop')[0]
-                    exampleModal.addEventListener('show.bs.modal', function (event) {
-                        console.log("Working");
-                        // Button that triggered the modal
-                        var button = event.relatedTarget
-                        // Extract info from data-bs-* attributes
-                        var recipient = button.getAttribute('data-bs-whatever')
-                        // If necessary, you could initiate an AJAX request here
-                        // and then do the updating in a callback.
-                        // Update the modal's content.
-                        var modalTitle = exampleModal.querySelector('.modal-title')
-                        var modalBodyInput = exampleModal.querySelector('.modal-body input')
+                    const exampleModal = $('#staticBackdrop')
+                    const options = {
+                        focus: true,
+                        keyboard: false,
+                        backdrop:"static"
+                    }
+                    const modal_element = document.getElementById('staticBackdrop')
+                    const myModal = new bootstrap.Modal(modal_element, options)
+                    myModal.show()
+                    // exampleModal.on('show.bs.modal', function (event) {
+                    //     // Button that triggered the modal
+                    //     const button = event.relatedTarget
+                    //     // Extract info from data-bs-* attributes
+                    //     const recipient = button.getAttribute('data-bs-whatever')
+                    //     console.log(recipient);
+                    //     // // If necessary, you could initiate an AJAX request here
+                    //     // // and then do the updating in a callback.
+                    //     // // Update the modal's content.
+                    //     // const modalTitle = exampleModal.querySelector('.modal-title')
+                    //     // // const modalBodyInput = exampleModal.querySelector('.modal-body input')
 
-                        modalTitle.textContent = 'New message to ' + recipient
-                        modalBodyInput.value = recipient
-                    })
+                    //     // modalTitle.textContent = 'New message to ' + recipient
+                    //     // // modalBodyInput.value = recipient
+                    // })
                 })
             }
             publish_modal()
