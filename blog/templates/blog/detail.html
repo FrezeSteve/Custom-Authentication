@@ -70,35 +70,32 @@
         <h2>Comments</h2>
         <ol id="comments_container">
             {% for comment in post.comments.all|slice:":10" %}
-            {% if forloop.counter < 10 %} <li>
-                <span class="fw-bold">{{comment.title}}</span> <br> {{comment.body}}
-                {% if comment.user and comment.user.first_name %}
-                <br> {{comment.user.first_name}}
-                {% endif %}
-                <br>
-                </li>
-                {% else %}
-                <button id="comments_button" class="btn btn-success" onclick="get_comments()">read more</button>
-                <div id="addComments"></div>
+                {% if forloop.counter < 10 %} <li>
+                    <span class="fw-bold">{{comment.title}}</span> <br> {{comment.body}}
+                    {% if comment.user and comment.user.first_name %}
+                    <br> {{comment.user.first_name}}
+                    {% endif %}
+                    <br>
+                    </li>
+                    {% else %}
+                    <button id="comments_button" class="btn btn-success" onclick="get_comments()">read more</button>
+                    <div id="addComments"></div>
                 {% endif%}
-                {% empty %}
+            {% empty %}
                 <p>No Comments yet.</p>
-                {% endfor %}
+            {% endfor %}
         </ol>
-
         {% endblock %}
         {% block scripts%}
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"
             integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
         <script>
-            const comment_form = $('#comment_form')[0]
-            const comment_section = $('#comment_button')[0]
+            var comment_form = $('#comment_form')
+            var comment_section = $('#comment_button')
             function setup_button() {
                 $(document).ready(function () {
-                    comment_form.style.display = "none";
-                    comment_section.classList.add("btn");
-                    comment_section.classList.add("btn-primary");
-                    comment_section.classList.add("mb-1");
+                    comment_form.css('display', 'none')
+                    comment_section.addClass("btn btn-primary mb-1")
                 })
             }
             setup_button()
@@ -125,19 +122,14 @@
             publish_modal()
             function comment_event() {
                 $(document).ready(function () {
-                    const comment_form = $('#comment_form')[0]
-                    const comment_section = $('#comment_button')[0]
-                    comment_form.style.display = "block";
-                    comment_section.classList.remove("btn")
-                    comment_section.classList.remove("btn-primary")
-                    comment_section.classList.add("fs-1")
-                    const one_level_up = $('#comment_div_container')[0];
-                    one_level_up.classList.remove("col-lg-2")
-                    one_level_up.classList.add("col-lg-12")
+                    comment_form.css('display', 'block')
+                    comment_section.removeClass("btn btn-primary")
+                    comment_section.addClass("fs-1")
+                    const one_level_up = $('#comment_div_container');
+                    one_level_up.removeClass("col-lg-2")
+                    one_level_up.addClass("col-lg-12")
                     const hidden_buttons = $('.hidden_buttons')
-                    for (let i = 0; i < hidden_buttons.length; i++) {
-                        hidden_buttons[i].style.display = "none";
-                    }
+                    hidden_buttons.css('display', 'none')
                 })
             }
 
