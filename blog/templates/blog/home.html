@@ -16,7 +16,18 @@
 
 <body>
     {% block content%}
-    <h1>Home Page</h1>
+    <div class="container">
+        {% include 'blog/navbar.html' %}
+        {% for post in object_list %}
+        {% if not forloop.first %}
+        <hr>
+        {% endif %}
+        <h2>{{ post.title }}</h2>
+        <small>Posted at {{post.date_created}}</small>
+        <p>{{ post.subtitle }} <br> {{ post.body|slice:50 }}</p>
+        <a href="{% url 'blog:detail' post.slug %} " class="btn btn-link p-0">read more</a>
+        {% endfor %}
+    </div>
     {% endblock %}
     {% block scripts%}{% endblock %}
 </body>

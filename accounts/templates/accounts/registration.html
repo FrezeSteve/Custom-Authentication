@@ -11,12 +11,16 @@
     <meta name="robots" content="index, follow" />
     <!-- <meta name="robots" content="noindex, nofollow" /> -->
     <meta name="description" content="Registration Page">
-    {% endblock %}
+    <style>
+        .full_width {
+            width: 100% !important;
+        }
+    </style>{% endblock %}
 </head>
 
 <body>
     {% block content%}
-    <div class="row mt-5">
+    <div class="row mt-5 full_width">
         <div class="col-12 col-md-6 mx-auto">
             <h1>Registration</h1>
             <form method="post">
