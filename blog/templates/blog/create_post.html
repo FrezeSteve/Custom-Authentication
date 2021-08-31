@@ -1,6 +1,7 @@
 {% extends "base.html"%}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -8,8 +9,12 @@
     <title>{% block title%}Create Post{% endblock %}</title>
     {% block head%}
     <meta name="description" content="Create Post">
-    {% endblock %}
+    <script src="//cdn.jsdelivr.net/npm/medium-editor@latest/dist/js/medium-editor.min.js"></script>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/medium-editor@latest/dist/css/medium-editor.min.css"
+        type="text/css" media="screen" charset="utf-8">
+    {% endblock head%}
 </head>
+
 <body>
     {% block content%}
     <div class="container">
@@ -19,8 +24,27 @@
             {% csrf_token %}
             {{form.as_p}}
             <button type="submit" class="btn btn-primary">Submit</button>
-          </form>
+        </form>
     </div>
     {% endblock %}
+    {% block scripts%}
+    <script src="https://unpkg.com/medium-editor-autolist@1.0.1/index.js"></script>
+    <script>
+        var autolist = new AutoList();
+        var editor = new MediumEditor('.editable', {
+            spellcheck: true,
+            extensions: {
+                'autolist': autolist
+            },
+            toolbar: {
+                buttons: ['h1', 'h2', 'h3', 'bold', 'italic', 'underline', 'anchor', 'quote', 'pre', 'unorderedlist', 'orderedlist']
+            },
+            placeholder:{
+                text: 'Type your text',
+                hideOnClick: true
+            }
+        });</script>
+    {% endblock scripts%}
 </body>
+
 </html>

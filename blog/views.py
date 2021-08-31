@@ -18,7 +18,11 @@ User = get_user_model()
 class PostListView(ListView):
     model = Post
     template_name = 'blog/home.html'
-    queryset = Post.objects.filter(published=True, archived=False)
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return Post.objects.filter(published=True, archived=False, author=self.request.user).all()
+        return Post.objects.filter(published=True, archived=False).all()
 
     def get(self, request, *args, **kwargs):
         response = super(PostListView, self).get(request, *args, **kwargs)
@@ -64,6 +68,8 @@ class PostDetailView(DetailView):
         return context
 
     def get(self, request, *args, **kwargs):
+        # if request.user != self.get_object().author:
+        #     return HttpResponseRedirect(reverse('blog:home'))
         response = super(PostDetailView, self).get(request, *args, **kwargs)
         custom_set_cookie(self.request, response)
         return response
@@ -140,7 +146,7 @@ class EditPostView(LoginRequiredMixin, UpdateView):
     #     return HttpResponseRedirect(reverse('blog:home'))
 
     def get(self, request, *args, **kwargs):
-        if not request.user.is_staff:
+        if not (request.user.is_staff and request.user == self.get_object().author):
             return HttpResponseRedirect(reverse('blog:home'))
         if Category.objects.count() == 0:
             Category.objects.create(
@@ -201,7 +207,6 @@ def list_comments(request, post_id, page_number):
     return JsonResponse(data, safe=False)
 
 
-# handles listing ajax requests
 @require_http_methods(["GET"])
 def archive_post(request, pk):
     if request.user.is_staff:
@@ -211,7 +216,6 @@ def archive_post(request, pk):
     return HttpResponseRedirect(reverse('blog:detail', kwargs={'slug': instance.slug}))
 
 
-# handles listing ajax requests
 @require_http_methods(["GET"])
 def publish_post(request, pk):
     if request.user.is_staff:

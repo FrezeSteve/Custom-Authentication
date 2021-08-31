@@ -31,7 +31,7 @@ class CreatePostForm(forms.ModelForm):
     )
     body = forms.CharField(
         widget=forms.Textarea(
-            attrs={'class': 'form-control', "placeholder": "body"})
+            attrs={'class': 'editable form-control', "placeholder": "body"})
     )
 
     category = forms.ModelChoiceField(

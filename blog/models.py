@@ -20,7 +20,7 @@ class Post(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255)
     subtitle = models.CharField(max_length=500)
-    slug = models.SlugField()
+    slug = models.SlugField(max_length=200)
     body = models.TextField()
     published = models.BooleanField(default=False)
     archived = models.BooleanField(default=False)
@@ -65,7 +65,7 @@ class Comment(models.Model):
     def __str__(self): return self.title
 
     class Meta:
-        ordering = ('date_created',)
+        ordering = ('-date_created',)
 
     def get_absolute_url(self):
         return reverse('blog:detail', kwargs={'slug': self.post.slug})
