@@ -19,7 +19,6 @@ class Category(models.Model):
 class Post(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255)
-    subtitle = models.CharField(max_length=500)
     slug = models.SlugField(max_length=200)
     body = models.TextField()
     published = models.BooleanField(default=False)

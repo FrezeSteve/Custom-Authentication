@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 
 class RegisterForm(forms.ModelForm):
     email = forms.EmailField(widget=forms.TextInput(attrs={'class': 'form-control', "placeholder": "Email"}))
+    first_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', "placeholder": "First Name"}))
     password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control', "placeholder": "Password"}))
     password2 = forms.CharField(label='Confirm password', widget=forms.PasswordInput(
         attrs={'class': 'form-control', "placeholder": "Confirm Password"})
@@ -14,7 +15,7 @@ class RegisterForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('email',)
+        fields = ('email', 'first_name')
 
     def clean_email(self):
         email = self.cleaned_data.get('email')

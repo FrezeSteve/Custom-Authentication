@@ -25,15 +25,10 @@ class CreatePostForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={'class': 'form-control', "placeholder": "title"})
     )
-    subtitle = forms.CharField(
-        widget=forms.TextInput(
-            attrs={'class': 'form-control', "placeholder": "subtitle"})
-    )
     body = forms.CharField(
         widget=forms.Textarea(
             attrs={'class': 'editable form-control', "placeholder": "body"})
     )
-
     category = forms.ModelChoiceField(
         queryset=Category.objects.all()
         , widget=forms.Select(
@@ -44,7 +39,6 @@ class CreatePostForm(forms.ModelForm):
         model = Post
         fields = (
             'title'
-            , 'subtitle'
             , 'body'
             , 'category'
         )

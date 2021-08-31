@@ -11,7 +11,7 @@
     {% block head%}
     <meta name="robots" content="index, follow" />
     <!-- <meta name="robots" content="noindex, nofollow" /> -->
-    <meta name="description" content="{{object.subtitle}}">
+    <meta name="description" content="{{object.title}}">
     <style>
         @media only screen and (max-width: 768px) {
             .full_width {
@@ -31,7 +31,6 @@
         {% include 'blog/navbar.html' %}
         <h1>{{object.title}}</h1>
         <hr>
-        <h2>{{ object.subtitle }}</h2>
         <small>Posted {{object.date_created|naturaltime}}</small>
         <p>{{ object.body|safe|linebreaksbr }}</p>
         <hr>
