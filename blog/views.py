@@ -20,7 +20,7 @@ class PostListView(ListView):
     template_name = 'blog/home.html'
 
     def get_queryset(self):
-        if self.request.user.is_authenticated:
+        if self.request.user.is_staff:
             return Post.objects.filter(published=True, archived=False, author=self.request.user).all()
         return Post.objects.filter(published=True, archived=False).all()
 

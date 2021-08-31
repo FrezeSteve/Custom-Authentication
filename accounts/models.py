@@ -28,6 +28,10 @@ class DeviceTracker(models.Model):
 
 class User(AbstractBaseUser, PermissionsMixin):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    profile_image = models.TextField(
+        blank=True,
+        null=True
+    )
     email = models.EmailField(
         verbose_name='email address',
         max_length=255,
@@ -88,3 +92,14 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     class Meta:
         ordering = ('-date_created',)
+
+
+class ProfileImagePath(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='profile_image_path')
+    image_path = models.CharField(max_length=500)
+    date_created = models.DateTimeField(default=timezone.now)
+    active = models.BooleanField(default=False)
+    expiration_date = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self): return str(self.user)
