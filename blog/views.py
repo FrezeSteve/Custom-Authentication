@@ -1,19 +1,28 @@
-from accounts.models import DeviceTracker
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import reverse, get_object_or_404, render
-from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 
 from .forms import CommentForm, CreatePostForm
 from .models import Post, Comment, Category
-from .utils import custom_set_cookie, get_create_device_tracker, unique_slug_generator, store_device_to_user
+from .utils import (
+    custom_set_cookie, get_create_device_tracker, unique_slug_generator, store_device_to_user,
+    save_tracker_to_logged_in_user
+)
 
 User = get_user_model()
 
+from django.contrib.auth.mixins import UserPassesTestMixin
 
+
+# class someView(UserPassesTestMixin, ListView):
+#
+#
+#     def get_test_func(self):
+#         return self.request.user.is_staff
 # Create your views here.
 class PostListView(ListView):
     model = Post
@@ -27,10 +36,23 @@ class PostListView(ListView):
     def get(self, request, *args, **kwargs):
         response = super(PostListView, self).get(request, *args, **kwargs)
         custom_set_cookie(self.request, response)
+        save_tracker_to_logged_in_user(request)
         return response
 
 
-class DraftPostListView(LoginRequiredMixin, ListView):
+# class DraftPostListView(LoginRequiredMixin, ListView):
+#     model = Post
+#     template_name = 'blog/home.html'
+#     queryset = Post.objects.filter(published=False, archived=False)
+#
+#     def get(self, request, *args, **kwargs):
+#         response = super(DraftPostListView, self).get(request, *args, **kwargs)
+#         custom_set_cookie(self.request, response)
+#         if not request.user.is_staff:
+#             return HttpResponseRedirect(reverse('blog:home'))
+#         return response
+
+class DraftPostListView(UserPassesTestMixin, ListView):
     model = Post
     template_name = 'blog/home.html'
     queryset = Post.objects.filter(published=False, archived=False)
@@ -38,9 +60,17 @@ class DraftPostListView(LoginRequiredMixin, ListView):
     def get(self, request, *args, **kwargs):
         response = super(DraftPostListView, self).get(request, *args, **kwargs)
         custom_set_cookie(self.request, response)
-        if not request.user.is_staff:
-            return HttpResponseRedirect(reverse('blog:home'))
         return response
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def dispatch(self, request, *args, **kwargs):
+        user_test_result = self.get_test_func()()
+        if not user_test_result:
+            messages.add_message(request, messages.INFO, 'You have been redirected.')
+            return HttpResponseRedirect(reverse('blog:home'))
+        return super().dispatch(request, *args, **kwargs)
 
 
 class ArchivedPostListView(LoginRequiredMixin, ListView):

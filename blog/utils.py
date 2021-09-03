@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 import random
 import string
+import uuid
 
 User = get_user_model()
 
@@ -18,6 +19,8 @@ def custom_set_cookie(request, response):
             "custom_session_id", value=value, max_age=max_age, expires=None, path='/'
             , domain=None, secure=None, httponly=True, samesite='Strict'
         )
+    else:
+        get_create_device_tracker(request)
 
 
 # def custom_set_cookie_for_user(response, session_id):
@@ -42,6 +45,20 @@ def get_create_device_tracker(request):
     device.last_used = timezone.now()
     device.save()
     return device
+
+
+def save_tracker_to_logged_in_user(request):
+    session_id = request.get_signed_cookie('custom_session_id', default=None)
+    if request.user.is_authenticated and session_id:
+        device = DeviceTracker.objects.filter(
+            device_id=session_id
+        )
+        if not device.exists():
+            device = get_create_device_tracker(request)
+        else:
+            device = device.first()
+        if not request.user.device.filter(id=device.id).exists():
+            request.user.device.add(device)
 
 
 def random_string_generator(size=10, chars=string.ascii_lowercase + string.digits):

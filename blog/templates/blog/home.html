@@ -18,6 +18,7 @@
     {% block content%}
     <div class="container">
         {% include 'blog/navbar.html' %}
+        {% include 'blog/messages.html' %}
         {% for post in object_list %}
         {% if not forloop.first %}
         <hr>
