@@ -18,11 +18,6 @@ User = get_user_model()
 from django.contrib.auth.mixins import UserPassesTestMixin
 
 
-# class someView(UserPassesTestMixin, ListView):
-#
-#
-#     def get_test_func(self):
-#         return self.request.user.is_staff
 # Create your views here.
 class PostListView(ListView):
     model = Post
@@ -37,18 +32,6 @@ class PostListView(ListView):
         save_tracker_to_logged_in_user(request)
         return response
 
-
-# class DraftPostListView(LoginRequiredMixin, ListView):
-#     model = Post
-#     template_name = 'blog/home.html'
-#     queryset = Post.objects.filter(published=False, archived=False)
-#
-#     def get(self, request, *args, **kwargs):
-#         response = super(DraftPostListView, self).get(request, *args, **kwargs)
-#         custom_set_cookie(self.request, response)
-#         if not request.user.is_staff:
-#             return HttpResponseRedirect(reverse('blog:home'))
-#         return response
 
 class DraftPostListView(UserPassesTestMixin, ListView):
     model = Post
@@ -172,16 +155,6 @@ class EditPostView(LoginRequiredMixin, UpdateView):
         # author
         form.instance.author = self.request.user
         return super().form_valid(form)
-
-    # def get_object(self, queryset=None):
-    #     instance = Post.objects.filter(id=self.kwargs.get('pk')).first()
-    #     if instance:
-    #         instance.pk = None
-    #         instance.save()
-    #     return instance
-
-    # def post(self, request, *args, **kwargs):
-    #     return HttpResponseRedirect(reverse('blog:home'))
 
     def get(self, request, *args, **kwargs):
         if not (request.user.is_staff and request.user == self.get_object().author):
