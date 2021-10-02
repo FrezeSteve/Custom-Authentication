@@ -55,7 +55,6 @@ class PostListView(ListView):
 class DraftPostListView(UserPassesTestMixin, ListView):
     model = Post
     template_name = 'blog/home.html'
-    queryset = Post.objects.filter(published=False, archived=False)
 
     def get(self, request, *args, **kwargs):
         response = super(DraftPostListView, self).get(request, *args, **kwargs)
@@ -71,6 +70,9 @@ class DraftPostListView(UserPassesTestMixin, ListView):
             messages.add_message(request, messages.INFO, 'You have been redirected.')
             return HttpResponseRedirect(reverse('blog:home'))
         return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return Post.objects.filter(published=False, archived=False, author=self.request.user).all()
 
 
 class ArchivedPostListView(LoginRequiredMixin, ListView):
@@ -98,8 +100,11 @@ class PostDetailView(DetailView):
         return context
 
     def get(self, request, *args, **kwargs):
-        # if request.user != self.get_object().author:
-        #     return HttpResponseRedirect(reverse('blog:home'))
+        if (
+                (not request.user.is_authenticated) and (not self.get_object().published)
+                or (not request.user.is_superuser) and (self.get_object().author != request.user)
+        ):
+            return HttpResponseRedirect(reverse('blog:home'))
         response = super(PostDetailView, self).get(request, *args, **kwargs)
         custom_set_cookie(self.request, response)
         return response
