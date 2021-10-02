@@ -53,14 +53,9 @@
                     href="{% url 'blog:edit_post' object.id %}">Edit</a>
             </div>
             {% endif %}
-            {% if object.archived is False or request.user.is_admin  %}
-            {% if object.published  %}
-            <div class="col-12 col-lg-2">
-                <!-- Button trigger modal -->
-                <button id="delete_button" type="button" class="full_width hidden_buttons btn btn-danger mb-1">
-                    Delete
-                </button>
-            </div>
+            {% if object.archived is False and object.published %}
+            {% if request.user.is_superuser or request.user == object.author %}
+            {% include 'blog/delete_button.html' %}
             {% endif %}
             {% endif %}
             {% endif %}

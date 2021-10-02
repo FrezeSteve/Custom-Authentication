@@ -124,7 +124,7 @@ PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.Argon2PasswordHasher',
 ]
 
-if DEBUG:
+if not DEBUG:
     PASSWORD_HASHERS = ['django.contrib.auth.hashers.BCryptSHA256PasswordHasher'] + PASSWORD_HASHERS
 
 LOGOUT_REDIRECT_URL = '/'

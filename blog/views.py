@@ -29,8 +29,6 @@ class PostListView(ListView):
     template_name = 'blog/home.html'
 
     def get_queryset(self):
-        if self.request.user.is_staff:
-            return Post.objects.filter(published=True, archived=False, author=self.request.user).all()
         return Post.objects.filter(published=True, archived=False).all()
 
     def get(self, request, *args, **kwargs):
@@ -72,7 +70,12 @@ class DraftPostListView(UserPassesTestMixin, ListView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        return Post.objects.filter(published=False, archived=False, author=self.request.user).all()
+        if self.request.user.is_authenticated and (not self.request.user.is_superuser):
+            return Post.objects.filter(published=False, archived=False, author=self.request.user).all()
+        elif self.request.user.is_superuser:
+            return Post.objects.filter(published=False, archived=False).all()
+        else:
+            return Post.objects.none()
 
 
 class ArchivedPostListView(LoginRequiredMixin, ListView):
@@ -100,9 +103,9 @@ class PostDetailView(DetailView):
         return context
 
     def get(self, request, *args, **kwargs):
-        if (
-                (not request.user.is_authenticated) and (not self.get_object().published)
-                or (not request.user.is_superuser) and (self.get_object().author != request.user)
+        if ((not self.get_object().published) and (
+                (not request.user.is_authenticated)
+                or (not request.user.is_superuser) and (self.get_object().author != request.user))
         ):
             return HttpResponseRedirect(reverse('blog:home'))
         response = super(PostDetailView, self).get(request, *args, **kwargs)
