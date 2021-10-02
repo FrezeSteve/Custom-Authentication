@@ -8,8 +8,30 @@ from .managers import UserManager
 import uuid
 
 
+class DeviceTracker(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    device_id = models.CharField(
+        verbose_name='Session ID',
+        max_length=255,
+        unique=True
+    )
+    date_created = models.DateTimeField(default=timezone.now)
+    last_used = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        verbose_name = 'DeviceTracker'
+        verbose_name_plural = 'DeviceTracker'
+        ordering = ('-date_created',)
+
+    def __str__(self): return self.device_id
+
+
 class User(AbstractBaseUser, PermissionsMixin):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    profile_image = models.TextField(
+        blank=True,
+        null=True
+    )
     email = models.EmailField(
         verbose_name='email address',
         max_length=255,
@@ -30,6 +52,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         blank=True,
         null=True
     )
+    device = models.ManyToManyField(DeviceTracker, related_name='device_link')
     date_created = models.DateTimeField(default=timezone.now)
     active = models.BooleanField(default=True)
     staff = models.BooleanField(default=False)  # a admin user; non super-user
@@ -67,20 +90,16 @@ class User(AbstractBaseUser, PermissionsMixin):
         """Is the user active?"""
         return self.active
 
-
-class AnonymousUser(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    session_id = models.CharField(
-        verbose_name='Session ID',
-        max_length=255,
-        unique=True
-    )
-    date_created = models.DateTimeField(default=timezone.now)
-    last_used = models.DateTimeField(default=timezone.now)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='logged_in_user', null=True, blank=True)
-
     class Meta:
-        verbose_name = 'AnonymousUser'
-        verbose_name_plural = 'AnonymousUser'
+        ordering = ('-date_created',)
 
-    def __str__(self): return self.session_id
+
+class ProfileImagePath(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='profile_image_path')
+    image_path = models.CharField(max_length=500)
+    date_created = models.DateTimeField(default=timezone.now)
+    active = models.BooleanField(default=False)
+    expiration_date = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self): return str(self.user)

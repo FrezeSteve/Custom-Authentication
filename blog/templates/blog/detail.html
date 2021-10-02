@@ -1,0 +1,230 @@
+{% extends "base.html"%}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title%}{{object.title}}{% endblock %}</title>
+    {% block head%}
+    <meta name="robots" content="index, follow" />
+    <!-- <meta name="robots" content="noindex, nofollow" /> -->
+    <meta name="description" content="{{object.title}}">
+    <style>
+        @media only screen and (max-width: 768px) {
+            .full_width {
+                width: 100% !important;
+            }
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    {% endblock %}
+</head>
+
+<body>
+    {% block content%}
+    {% include 'blog/modal.html' %}
+    <div class="container">
+        {% include 'blog/navbar.html' %}
+        <h1>{{object.title}}</h1>
+        <hr>
+        <small>Posted {{object.date_created|naturaltime}}</small>
+        <p>{{ object.body|safe|linebreaksbr }}</p>
+        <hr>
+        <div class="row mx-0">
+            <div id="comment_div_container" class="col-12 col-lg-2">
+                <div id="comment_button" class="full_width" onclick="comment_event()">Add Comment</div>
+            </div>
+            {% if request.user.is_staff %}
+            {% if not object.published and request.user == object.author %}
+            <div class="col-12 col-lg-2">
+                <!-- Button trigger modal -->
+                <button id="publish_button" type="button" class="hidden_buttons full_width  btn btn-success mb-1">
+                    Publish
+                </button>
+            </div>
+            {% endif %}
+            {% if request.user == object.author %}
+            <div class="col-12 col-lg-2">
+                <a class="hidden_buttons full_width btn btn-warning mb-1"
+                    href="{% url 'blog:edit_post' object.id %}">Edit</a>
+            </div>
+            {% endif %}
+            {% if object.archived is False and object.published %}
+            {% if request.user.is_superuser or request.user == object.author %}
+            {% include 'blog/delete_button.html' %}
+            {% endif %}
+            {% endif %}
+            {% endif %}
+        </div>
+
+        <form id="comment_form" action="{% url 'blog:create_comment' object.id %}" method="post">
+            {% csrf_token %}
+            {{comment_form.as_p}}
+            <button type="submit" class="full_width btn btn-success">submit</button>
+        </form>
+        <h2>Comments</h2>
+        <ol id="comments_container">
+            {% for comment in post.comments.all|slice:":11" %}
+                {% if forloop.counter <= 10 %} <li>
+                    <span class="fw-bold">{{comment.title}}</span> <br> {{comment.body}}
+                    {% if comment.user and comment.user.first_name %}
+                    <br> {{comment.user.first_name}}
+                    {% endif %}
+                    <br>
+                    </li>
+                {% elif forloop.counter > 10 %}
+                <button id="comments_button" class="btn btn-success" onclick="get_comments()">read more</button>
+                <div id="addComments"></div>
+                {% endif%}
+            {% empty %}
+            <p>No Comments yet.</p>
+            {% endfor %}
+        </ol>
+    </div>
+        {% endblock content %}
+        {% block scripts%}
+        
+        <script>
+            var comment_form = $('#comment_form')
+            var comment_section = $('#comment_button')
+            function setup_button() {
+                $(document).ready(function () {
+                    comment_form.css('display', 'none')
+                    comment_section.addClass("btn btn-primary mb-1")
+                })
+            }
+            setup_button()
+            {% if request.user.is_staff %}
+            function publish_modal() {
+                $(document).ready(function () {
+                    const delete_button = $('#delete_button')
+                    const publish_button = $('#publish_button')
+                    const close_modal_button = $('#close_modal_button')
+                    const modal_element = $('#staticBackdrop')
+                    const modal_element_js = document.getElementById('staticBackdrop')
+                    const modal_title = $('#staticBackdrop .modal-title')
+                    const modal_body = $('#staticBackdrop .modal-body')
+                    const options = {
+                        focus: true,
+                        keyboard: false,
+                        backdrop: "static"
+                    }
+                    const myModal = new bootstrap.Modal(modal_element_js, options)
+                    modal_element_js.addEventListener('hidden.bs.modal', function (event) {
+                        modal_body.empty()
+                    })
+                    close_modal_button.on('click', function (event) {
+                        const options = {
+                            focus: true,
+                            keyboard: false,
+                            backdrop: "static"
+                        }
+                        myModal.hide()
+                    })
+                    publish_button.on('click', function (event) {
+                        modal_title.text(`Publish {{ object.title }}`)
+                        const button = `
+                                <a class="btn btn-success" style="width: 100% !important;" href="{% url 'blog:publish_post' object.id %}">Publish</a>
+                        `
+                        modal_body.append(button)
+                        myModal.show()
+                    })
+                    delete_button.on('click', function (event) {
+                        modal_title.text(`Delete {{ object.title }}`)
+                        // const button = `<a class="btn btn-danger  col-12 col-lg-6" href="{% url 'blog:archive_post' object.id %}">Delete</a>`
+                        const button = `
+                                <a class="btn btn-danger" style="width: 100% !important;" href="{% url 'blog:archive_post' object.id %}">Delete</a>
+                        `
+                        modal_body.append(button)
+                        const options = {
+                            focus: true,
+                            keyboard: false,
+                            backdrop: "static"
+                        }
+                        const myModal = new bootstrap.Modal(document.getElementById('staticBackdrop'), options)
+                        myModal.show()
+                    })
+                })
+                // const exampleModal = $('#staticBackdrop')
+                // const options = {
+                //     focus: true,
+                //     keyboard: false,
+                //     backdrop: "static"
+                // }
+                // const modal_element = document.getElementById('staticBackdrop')
+                // const myModal = new bootstrap.Modal(modal_element, options)
+                // myModal.show()
+                // exampleModal.on('show.bs.modal', function (event) {
+                //     // Button that triggered the modal
+                //     const button = event.relatedTarget
+                //     // Extract info from data-bs-* attributes
+                //     const recipient = button.getAttribute('data-bs-whatever')
+                //     console.log(recipient);
+                //     // // If necessary, you could initiate an AJAX request here
+                //     // // and then do the updating in a callback.
+                //     // // Update the modal's content.
+                //     // const modalTitle = exampleModal.querySelector('.modal-title')
+                //     // // const modalBodyInput = exampleModal.querySelector('.modal-body input')
+
+                //     // modalTitle.textContent = 'New message to ' + recipient
+                //     // // modalBodyInput.value = recipient
+                // })
+            }
+            publish_modal()
+            {% endif %}
+            function comment_event() {
+                $(document).ready(function () {
+                    comment_form.css('display', 'block')
+                    comment_section.removeClass("btn btn-primary")
+                    comment_section.addClass("fs-1")
+                    const one_level_up = $('#comment_div_container');
+                    one_level_up.removeClass("col-lg-2")
+                    one_level_up.addClass("col-lg-12")
+                    const hidden_buttons = $('.hidden_buttons')
+                    hidden_buttons.css('display', 'none')
+                })
+            }
+            let current_comment_length = 2;
+            let hide_button = false
+            function get_comments() {
+                $(document).ready(function () {
+                    const url = "{% url 'blog:get_comments' post_id=object.id page_number=1 %}".split("/").slice(0, 4).join('/') + `/${current_comment_length}/`
+                    $.get(url, function (data, status) {
+                        if (data.length > 0) {
+                            if (!hide_button) {
+                                $('#comments_button').remove()
+                                hide_button = true;
+                            }
+                            data.forEach((element, index) => {
+                                if(index <= 10){
+                                    let node = `<span class="fw-bold">${element.title}</span> <br> ${element.body}`
+                                    if (element.registered_user) {
+                                        node += `<br> ${element.user}`
+                                    }
+                                    node += '<br>'
+                                    $("#comments_container").append(`<li>${node}</li>`)
+                                }
+                                else{
+                                    if (hide_button) {
+                                        $("#comments_container").append('<button id="comments_button" class="btn btn-success" onclick="get_comments()">read more</button>')
+                                        hide_button = false;
+                                    }
+                                }
+                            });
+                        }
+                        current_comment_length += 1
+                    });
+                });
+            }
+        </script>
+        
+        
+    
+    {% endblock scripts %}
+</body>
+
+</html>
