@@ -1,3 +1,5 @@
+import time
+
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -57,8 +59,7 @@ class DraftPostListView(UserPassesTestMixin, ListView):
             return Post.objects.filter(published=False, archived=False, author=self.request.user).all()
         elif self.request.user.is_superuser:
             return Post.objects.filter(published=False, archived=False).all()
-        else:
-            return Post.objects.none()
+        return Post.objects.none()
 
 
 class ArchivedPostListView(LoginRequiredMixin, ListView):
@@ -88,7 +89,8 @@ class PostDetailView(DetailView):
     def get(self, request, *args, **kwargs):
         if ((not self.get_object().published) and (
                 (not request.user.is_authenticated)
-                or (not request.user.is_superuser) and (self.get_object().author != request.user))
+                or
+                (not request.user.is_superuser) and (self.get_object().author != request.user))
         ):
             return HttpResponseRedirect(reverse('blog:home'))
         response = super(PostDetailView, self).get(request, *args, **kwargs)
