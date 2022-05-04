@@ -2,7 +2,7 @@ import time
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import reverse, get_object_or_404, render
 from django.views.decorators.http import require_http_methods
@@ -16,8 +16,6 @@ from .utils import (
 )
 
 User = get_user_model()
-
-from django.contrib.auth.mixins import UserPassesTestMixin
 
 
 # Create your views here.
